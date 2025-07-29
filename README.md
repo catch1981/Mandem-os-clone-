@@ -33,6 +33,13 @@ To sync clones over a network, start `clone_network.py` on one machine and set t
 python clone_client.py --help
 ```
 
+The client now includes commands to list queued tasks and retrieve stored results:
+
+```bash
+python clone_client.py list-tasks    # view tasks without consuming them
+python clone_client.py results       # print task results reported by clones
+```
+
 ### Sensitive Data Firewall
 `clone_network.py` now masks API keys and other tokens from shared messages and tasks. Set `FIREWALL_PATTERNS` with comma-separated regexes to customize what gets filtered.
 
