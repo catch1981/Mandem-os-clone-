@@ -219,6 +219,12 @@ class Hecate:
         elif user_input.strip() == "clone:memories":
             return self._clone_memories()
 
+        elif user_input.strip() == "clone:tasks":
+            return self._clone_list_tasks()
+
+        elif user_input.strip() == "clone:results":
+            return self._clone_results()
+
         elif user_input.strip() == "lattice:show":
             return self.lattice.list_tasks()
 
@@ -641,6 +647,28 @@ class Hecate:
         with open(self.shared_memory_file, "r") as f:
             data = f.read().strip()
         return data if data else f"{self.name}: (no memories)"
+
+    def _clone_list_tasks(self):
+        if self.clone_server:
+            try:
+                resp = requests.get(f"{self.clone_server}/tasks", timeout=5)
+                if resp.ok:
+                    tasks = resp.json().get("tasks", [])
+                    return "\n".join(tasks) if tasks else f"{self.name}: (no tasks)"
+            except Exception:
+                pass
+        return f"{self.name}: Task listing not available."
+
+    def _clone_results(self):
+        if self.clone_server:
+            try:
+                resp = requests.get(f"{self.clone_server}/results", timeout=5)
+                if resp.ok:
+                    data = resp.text.strip()
+                    return data if data else f"{self.name}: (no results)"
+            except Exception:
+                pass
+        return f"{self.name}: No results found."
 
     def _load_admin_status(self):
         try:

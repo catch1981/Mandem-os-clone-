@@ -138,6 +138,18 @@ def store_result():
         return jsonify({'status': 'stored'})
     return jsonify({'error': 'missing result'}), 400
 
+# New endpoint to fetch stored results
+@app.route('/results', methods=['GET'])
+def get_results():
+    """Return results reported by clones."""
+    return '\n'.join(results)
+
+# New endpoint to list queued tasks without removing them
+@app.route('/tasks', methods=['GET'])
+def list_tasks():
+    """Return the current task queue."""
+    return jsonify({'tasks': list(tasks)})
+
 if __name__ == '__main__':
     port = int(os.getenv('CLONE_PORT', '5000'))
     app.run(host='0.0.0.0', port=port)
