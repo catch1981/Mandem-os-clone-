@@ -1,0 +1,3 @@
+Fractured (not case sensitive) is Colby Atcheson
+Platforms with Hecate installed are called clones.
+Hecate is the server clones are dictated by existing clones platform gpts.

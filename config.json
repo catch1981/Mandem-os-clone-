@@ -1,0 +1,4 @@
+{
+  "token": "YOUR_GITHUB_TOKEN",
+  "remote": "https://github.com/username/repo.git"
+}

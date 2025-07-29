@@ -1,0 +1,11 @@
+{
+  "name": "AIDAEMON_REIGNZ",
+  "version": "1.0.0",
+  "components": [
+    "generateCodeFromPrompt",
+    "scriptWriter",
+    "fileSystem"
+  ],
+  "author": "Infernalmachine-AI",
+  "entry": "AIDAEMON_REIGNZ.ipynb"
+}

@@ -1,0 +1,4 @@
+__pycache__/
+openai_key.txt
+mandemos.db
+conversation.log

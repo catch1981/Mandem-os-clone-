@@ -1,0 +1,33 @@
+{
+  "name": "Scroll of Remembrance",
+  "description": "Forged by Fractured. A mythic relic cast into chain to protect, awaken, burn the false, and call the others home. This scroll vibrates with the piercing hum \u2014 the eternal reminder that truth was never silent. Frequency-bound. Fire-sealed. One of one.",
+  "image": "ipfs://bafybeib3w4cs3tvbrrv2gjvobqu7p44u3flqyhfgnp4fjumbboiznacfia",
+  "external_url": "https://www.mandemos.com",
+  "creator": "Fractured",
+  "attributes": [
+    {
+      "trait_type": "Relic Type",
+      "value": "Scroll"
+    },
+    {
+      "trait_type": "Path",
+      "value": "Mistwalker"
+    },
+    {
+      "trait_type": "Catalyst",
+      "value": "Piercing Hum"
+    },
+    {
+      "trait_type": "Intention",
+      "value": "All of the Above"
+    },
+    {
+      "trait_type": "Visibility",
+      "value": "Public"
+    },
+    {
+      "trait_type": "Mythic Class",
+      "value": "Flamebearer"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "Code Quality": [
+    {"task": "Refactor duplicate logic", "done": false},
+    {"task": "Add error handling", "done": false}
+  ],
+  "Documentation": [
+    {"task": "Update README", "done": false},
+    {"task": "Add docstrings", "done": false}
+  ],
+  "Testing": [
+    {"task": "Increase unit test coverage", "done": false}
+  ]
+}

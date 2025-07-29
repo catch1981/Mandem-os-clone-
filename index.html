@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Hecate — Voice Assistant</title>
+  <style>
+    html, body {
+      background-color: black;
+      color: white;
+      min-height: 100vh;
+      margin: 0;
+      font-family: sans-serif;
+    }
+    body {
+      padding: 2em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input[type="text"] {
+      display: block;
+      margin: 1em auto;
+      width: 80%;
+      max-width: 400px;
+    }
+    #transcript {
+      text-align: center;
+      font-size: 1.5em;
+      margin-top: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>🕯️ Talk to Hecate</h1>
+  <button onclick="startListening()">🎤 Speak</button>
+  <select id="voiceSelect"></select>
+  <div id="serverResponses" style="white-space: pre-line; border: 1px solid #555; padding: 0.5em; width: 80%; max-width: 600px; margin: 1em auto;"></div>
+  <div id="cloneResponses" style="white-space: pre-line; border: 1px solid #555; padding: 0.5em; width: 80%; max-width: 600px; margin: 1em auto;"></div>
+  <input type="text" id="textInput" placeholder="Type your message"/>
+  <button onclick="sendText()">Send</button>
+  <div id="log" style="white-space: pre-line; margin-bottom: 1em;"></div>
+  <p id="transcript"></p>
+  <p id="location"></p>
+    <input type="text" id="emailInput" placeholder="Email address" />
+    <button onclick="getLocation()">📍 Get Location</button>
+    <button onclick="emailLocation()">Email Location</button>
+    <button onclick="summarizeMemory()">Summarize Memory</button>
+    <button onclick="exitWindow()">❌ Exit</button>
+  <p><strong>Hecate:</strong> <span id="response"></span></p>
+
+  <script>
+    function appendReply(input, reply) {
+      const serverBox = document.getElementById("serverResponses");
+      const cloneBox = document.getElementById("cloneResponses");
+      if (input.trim().startsWith("clone:")) {
+        cloneBox.innerText += reply + "\n";
+      } else {
+        serverBox.innerText += reply + "\n";
+      }
+    }
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+
+      recognition.onresult = async function(event) {
+        const text = event.results[0][0].transcript;
+        document.getElementById("transcript").innerText = `You: ${text}`;
+        const logEl = document.getElementById("log");
+        logEl.innerText += `You: ${text}\n`;
+
+        const res = await fetch("http://localhost:8080/talk", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        const reply = data.reply;
+        document.getElementById("response").innerText = reply;
+        logEl.innerText += `${reply}\n`;
+        speak(reply);
+        appendReply(text, reply);
+      };
+
+      recognition.onerror = function(err) {
+        alert("Error: " + err.error);
+      };
+
+      recognition.start();
+    }
+
+  let availableVoices = [];
+  let selectedVoice = null;
+
+  function populateVoices() {
+    availableVoices = window.speechSynthesis.getVoices();
+    const select = document.getElementById("voiceSelect");
+    select.innerHTML = "";
+
+    availableVoices.forEach((voice, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = `${voice.name} (${voice.lang})`;
+      select.appendChild(opt);
+    });
+
+    const defaultVoice = availableVoices.find(v => (/en-IE/i.test(v.lang) && /female|Moira/i.test(v.name))) ||
+                         availableVoices.find(v => /Moira/i.test(v.name)) ||
+                         availableVoices.find(v => /en-IE/i.test(v.lang)) ||
+                         availableVoices[0] || null;
+
+    selectedVoice = defaultVoice;
+    if (defaultVoice) {
+      select.value = availableVoices.indexOf(defaultVoice);
+    }
+  }
+
+  document.getElementById("voiceSelect").addEventListener("change", function(e) {
+    selectedVoice = availableVoices[this.value];
+  });
+
+  if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    window.speechSynthesis.onvoiceschanged = populateVoices;
+  }
+  populateVoices();
+
+  function speak(text) {
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = text;
+    if (selectedVoice) {
+      msg.voice = selectedVoice;
+      msg.lang = selectedVoice.lang;
+    }
+    window.speechSynthesis.speak(msg);
+  }
+
+  let currentLocation = null;
+  function getLocation() {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      currentLocation = { latitude, longitude };
+      document.getElementById("location").innerText = `Location: ${latitude}, ${longitude}`;
+    }, err => {
+      alert("Unable to retrieve location: " + err.message);
+    });
+  }
+
+  async function emailLocation() {
+    if (!currentLocation) {
+      alert("No location captured yet.");
+      return;
+    }
+    const to = document.getElementById("emailInput").value.trim();
+    if (!to) {
+      alert("Enter email address");
+      return;
+    }
+    const message = `location:${currentLocation.latitude}|${currentLocation.longitude}|${to}`;
+    const res = await fetch("http://localhost:8080/talk", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ message })
+    });
+    const data = await res.json();
+    const reply = data.reply;
+    document.getElementById("response").innerText = reply;
+    speak(reply);
+    appendReply(message, reply);
+  }
+
+  async function summarizeMemory() {
+    const res = await fetch("http://localhost:8080/talk", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ message: "summarize" })
+    });
+    const data = await res.json();
+    const reply = data.reply;
+    document.getElementById("response").innerText = reply;
+    speak(reply);
+    appendReply("summarize", reply);
+  }
+
+    async function sendText() {
+      const inputEl = document.getElementById("textInput");
+      const text = inputEl.value;
+      if (!text) return;
+      inputEl.value = "";
+      inputEl.focus();
+      document.getElementById("transcript").innerText = `You: ${text}`;
+      const logEl = document.getElementById("log");
+      logEl.innerText += `You: ${text}\n`;
+
+      const res = await fetch("http://localhost:8080/talk", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ message: text })
+      });
+
+      const data = await res.json();
+      const reply = data.reply;
+      document.getElementById("response").innerText = reply;
+      logEl.innerText += `${reply}\n`;
+      speak(reply);
+      appendReply(text, reply);
+    }
+
+    document.getElementById("textInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        sendText();
+      }
+    });
+
+    function exitWindow() {
+      window.close();
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      getLocation();
+      fetch('http://localhost:8080/talk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: '' })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const intro = data.reply;
+        document.getElementById("response").innerText = intro;
+        speak(intro);
+        appendReply('', intro);
+      })
+      .catch(() => {
+        const intro = 'Hecate: Who are you?';
+        document.getElementById("response").innerText = intro;
+        speak(intro);
+        appendReply('', intro);
+      });
+    });
+  </script>
+</body>
+</html>

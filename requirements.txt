@@ -1,0 +1,8 @@
+flask
+flask-cors
+requests
+beautifulsoup4
+openai
+SpeechRecognition
+PyAudio
+psutil
